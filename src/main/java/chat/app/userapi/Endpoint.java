@@ -21,6 +21,8 @@ import java.util.List;
 public class Endpoint {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Endpoint.class);
+    private static final String DEPLOYMENT_OR_MODEL_NAME = "gpt35-deployment";
+    private static final double TEMPERATURE = 0.2;
 
     @Value("${openai.api.key}")
     private String openaiApiKey;
@@ -57,9 +59,9 @@ public class Endpoint {
         chatMessages.add(new ChatMessage(ChatRole.USER, prompt.prompt()));
 
         ChatCompletionsOptions chatCompletionsOptions = new ChatCompletionsOptions(chatMessages);
-        chatCompletionsOptions.setTemperature(0.2);
+        chatCompletionsOptions.setTemperature(TEMPERATURE);
         ChatCompletions chatCompletions =
-                client.getChatCompletions("gpt35-deployment", chatCompletionsOptions);
+                client.getChatCompletions(DEPLOYMENT_OR_MODEL_NAME, chatCompletionsOptions);
 
         List<String> responses = new ArrayList<>();
 
