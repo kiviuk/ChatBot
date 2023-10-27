@@ -1,3 +1,6 @@
+gradle*
+gradle
+target
 HELP.md
 .gradle
 build/
