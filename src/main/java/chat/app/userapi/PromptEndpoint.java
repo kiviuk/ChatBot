@@ -17,33 +17,52 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.ArrayList;
 import java.util.List;
 
-// https://ondrej-kvasnovsky.medium.com/how-to-stream-azure-openai-from-spring-api-to-web-client-74eb61db59fc
-// https://learn.microsoft.com/en-us/java/api/overview/azure/ai-openai-readme?view=azure-java-preview
 @RestController
-public class Endpoint {
+public class PromptEndpoint {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(Endpoint.class);
-    private static final String DEPLOYMENT_OR_MODEL_NAME = "gpt35-deployment";
-    private static final double TEMPERATURE = 0.2;
+    private static final Logger LOGGER = LoggerFactory.getLogger(PromptEndpoint.class);
 
     @Value("${openai.api.baseurl}")
-    private String openaiApiBaseUrl;
+    private String azureOpenaiApiBaseUrl;
+
+    @Value("${openai.api.deployment}")
+    private String gpt35DeploymentName;
+
+    @Value("${openai.api.temperature}")
+    private double temperature;
 
     @PostMapping(value = "/prompt", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> prompt(@NonNull @RequestBody Request prompt) {
 
         if (prompt.prompt() == null) {
-            LOGGER.info("Received null user chat prompt.");
-            return ResponseEntity.ok("User request cannot be null");  // Returns HTTP 400
+            LOGGER.info("Received null user prompt.");
+            return ResponseEntity.ok("User prompt cannot be null");
         }
 
-        OpenAIClient client =  new OpenAIClientBuilder()
-                    .credential(new AzureKeyCredential(getOpenaiApiKey()))
-                    .endpoint(openaiApiBaseUrl)
-                    .buildClient();
+        List<ChatMessage> gpt35ChatMessages = createGpt35ChatMessages(prompt);
+        ChatCompletionsOptions gpt35ChatCompletionsOptions = new ChatCompletionsOptions(gpt35ChatMessages);
+        gpt35ChatCompletionsOptions.setTemperature(temperature);
 
+        OpenAIClient gpt35Client =
+                createOpenAIClient(new AzureKeyCredential(getAzureOpenaiApiKey()), azureOpenaiApiBaseUrl);
 
-        var chatMessages = new ArrayList<ChatMessage>();
+        ChatCompletions gpt35ChatCompletions =
+                gpt35Client.getChatCompletions(gpt35DeploymentName, gpt35ChatCompletionsOptions);
+
+        List<String> gpt35ChatResponses = gpt35ChatResponses(gpt35ChatCompletions);
+
+        return ResponseEntity.ok(String.join(System.lineSeparator(), gpt35ChatResponses));
+    }
+
+    private OpenAIClient createOpenAIClient(AzureKeyCredential keyCredential, String endpoint) {
+        return new OpenAIClientBuilder()
+                .credential(keyCredential)
+                .endpoint(endpoint)
+                .buildClient();
+    }
+
+    private List<ChatMessage> createGpt35ChatMessages(Request prompt) {
+        List<ChatMessage> chatMessages = new ArrayList<>();
         chatMessages.add(new ChatMessage(ChatRole.SYSTEM, """
                 You are an effective Senior Software Engineer helping a junior software engineer in analysing and
                 understanding complex technical problems.
@@ -56,12 +75,10 @@ public class Endpoint {
                 - Refrain from self referrals, such "I suggest..."
                 """));
         chatMessages.add(new ChatMessage(ChatRole.USER, prompt.prompt()));
+        return chatMessages;
+    }
 
-        ChatCompletionsOptions chatCompletionsOptions = new ChatCompletionsOptions(chatMessages);
-        chatCompletionsOptions.setTemperature(TEMPERATURE);
-        ChatCompletions chatCompletions =
-                client.getChatCompletions(DEPLOYMENT_OR_MODEL_NAME, chatCompletionsOptions);
-
+    private List<String> gpt35ChatResponses(ChatCompletions chatCompletions) {
         List<String> responses = new ArrayList<>();
 
         for (ChatChoice choice : chatCompletions.getChoices()) {
@@ -72,11 +89,11 @@ public class Endpoint {
             responses.add(message.getContent());
         }
 
-        return ResponseEntity.ok(String.join("\n", responses));
+        return responses;
     }
 
-    public String getOpenaiApiKey() {
-        return System.getProperty("OPENAI_TOKEN");
+    public String getAzureOpenaiApiKey() {
+        return System.getProperty("OPENAI_API_KEY");
     }
 
 }
