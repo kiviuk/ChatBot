@@ -17,15 +17,14 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.ArrayList;
 import java.util.List;
 
+// https://ondrej-kvasnovsky.medium.com/how-to-stream-azure-openai-from-spring-api-to-web-client-74eb61db59fc
+// https://learn.microsoft.com/en-us/java/api/overview/azure/ai-openai-readme?view=azure-java-preview
 @RestController
 public class Endpoint {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Endpoint.class);
     private static final String DEPLOYMENT_OR_MODEL_NAME = "gpt35-deployment";
     private static final double TEMPERATURE = 0.2;
-
-    @Value("${openai.api.key}")
-    private String openaiApiKey;
 
     @Value("${openai.api.baseurl}")
     private String openaiApiBaseUrl;
@@ -39,7 +38,7 @@ public class Endpoint {
         }
 
         OpenAIClient client =  new OpenAIClientBuilder()
-                    .credential(new AzureKeyCredential(openaiApiKey))
+                    .credential(new AzureKeyCredential(getOpenaiApiKey()))
                     .endpoint(openaiApiBaseUrl)
                     .buildClient();
 
@@ -74,6 +73,10 @@ public class Endpoint {
         }
 
         return ResponseEntity.ok(String.join("\n", responses));
+    }
+
+    public String getOpenaiApiKey() {
+        return System.getProperty("OPENAI_TOKEN");
     }
 
 }
