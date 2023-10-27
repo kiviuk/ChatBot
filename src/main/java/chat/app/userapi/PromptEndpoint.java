@@ -31,6 +31,13 @@ public class PromptEndpoint {
     @Value("${openai.api.temperature}")
     private double temperature;
 
+    /**
+     * Endpoint for POST /prompt requests. Accepts a user's prompt via JSON payload and generates
+     * a response using the Azure's OpenAI GPT-3 model.
+     *
+     * @param prompt Non-null instance of {@link Request} representing the user's prompt.
+     * @return {@link ResponseEntity<String>} with AI-generated responses as a single string.
+     */
     @PostMapping(value = "/prompt", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> prompt(@NonNull @RequestBody Request prompt) {
 
