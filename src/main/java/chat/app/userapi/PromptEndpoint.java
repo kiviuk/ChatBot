@@ -49,18 +49,22 @@ public class PromptEndpoint {
             return ResponseEntity.ok("User prompt cannot be null");
         }
 
+        // Creating a list of messages including system message and user prompt.
         List<ChatMessage> gpt35ChatMessages = createGpt35ChatMessages(prompt);
+        // With the created chat messages, ChatCompletionsOptions is initialized.
         ChatCompletionsOptions gpt35ChatCompletionsOptions = new ChatCompletionsOptions(gpt35ChatMessages);
+        // Temperature is set for the chat completion options.
         gpt35ChatCompletionsOptions.setTemperature(temperature);
-
+        // Create and initialize the OpenAIClient.
         OpenAIClient gpt35Client =
                 createOpenAIClient(new AzureKeyCredential(getAzureOpenaiApiKey()), getAzureOpenaiApiBaseUrl());
-
+        // Request chat completions from the OpenAI client.
         ChatCompletions gpt35ChatCompletions =
                 gpt35Client.getChatCompletions(getAzureOpenaiDeployment(), gpt35ChatCompletionsOptions);
-
+        // Extract the responses from ChatCompletions.
         List<String> gpt35ChatResponses = gpt35ChatResponses(gpt35ChatCompletions);
 
+        // Convert response list to a single string and return.
         return ResponseEntity.ok(String.join(System.lineSeparator(), gpt35ChatResponses));
     }
 
