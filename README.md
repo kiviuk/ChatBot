@@ -8,8 +8,8 @@ This guide describes how to run a Spring Boot application with an environment va
 
    Open a terminal and enter the following command:
     ```bash
-    mvn spring-boot:run -Dspring-boot.run.jvmArguments='-DOPENAI_API_KEY=your_openai_token_here'
-    ```
+    mvn spring-boot:run -Dspring-boot.run.jvmArguments='-DOPENAI_API_KEY=your_openai_token_here -DOPENAI_DEPLOYMENT=your_openai_deployment_name -DOPENAI_BASE_URL=your_openai_base_url
+  ```
 
 ## 2. Retrieving the OpenAI Key Variable within REST Controller
 

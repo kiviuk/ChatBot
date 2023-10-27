@@ -1,0 +1,14 @@
+logging:
+  level:
+    chat.app: DEBUG
+    root: INFO
+
+openai:
+  api:
+    baseurl: OPENAI_BASE_URL
+    deployment: OPENAI_DEPLOYMENT
+    key: OPENAI_API_KEY
+    temperature: 0.2
+
+server:
+  port: 9090

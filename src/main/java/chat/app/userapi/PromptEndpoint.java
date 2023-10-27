@@ -28,6 +28,9 @@ public class PromptEndpoint {
     @Value("${openai.api.deployment}")
     private String gpt35DeploymentName;
 
+    @Value("${openai.api.key}")
+    private String azureOpenaiApiKey;
+
     @Value("${openai.api.temperature}")
     private double temperature;
 
@@ -51,10 +54,10 @@ public class PromptEndpoint {
         gpt35ChatCompletionsOptions.setTemperature(temperature);
 
         OpenAIClient gpt35Client =
-                createOpenAIClient(new AzureKeyCredential(getAzureOpenaiApiKey()), azureOpenaiApiBaseUrl);
+                createOpenAIClient(new AzureKeyCredential(getAzureOpenaiApiKey()), getAzureOpenaiApiBaseUrl());
 
         ChatCompletions gpt35ChatCompletions =
-                gpt35Client.getChatCompletions(gpt35DeploymentName, gpt35ChatCompletionsOptions);
+                gpt35Client.getChatCompletions(getAzureOpenaiDeployment(), gpt35ChatCompletionsOptions);
 
         List<String> gpt35ChatResponses = gpt35ChatResponses(gpt35ChatCompletions);
 
@@ -100,7 +103,13 @@ public class PromptEndpoint {
     }
 
     public String getAzureOpenaiApiKey() {
-        return System.getProperty("OPENAI_API_KEY");
+        return System.getProperty(azureOpenaiApiKey);
+    }
+    public String getAzureOpenaiDeployment() {
+        return System.getProperty(gpt35DeploymentName);
+    }
+    public String getAzureOpenaiApiBaseUrl() {
+        return System.getProperty(azureOpenaiApiBaseUrl);
     }
 
 }

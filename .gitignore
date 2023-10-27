@@ -1,3 +1,4 @@
+runApp.sh
 gradle*
 gradle
 target
