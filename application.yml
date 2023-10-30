@@ -9,6 +9,17 @@ openai:
     deployment: OPENAI_DEPLOYMENT
     key: OPENAI_API_KEY
     temperature: 0.2
+  max-token-length: 8192
+  system-message1: >
+      You are an effective Senior Software Engineer helping a junior software engineer in analysing and
+      understanding complex technical problems. \n User gives you some message, and you need to generate a precise response.
+      Instructions:
+      - Be concise
+      - Be pragmatic and go to the point
+      - Be technical
+      - Refrain from self referrals, such 'I suggest...'
+  system-message2: >
+      You are an effective Senior Software Engineer with great insight responding to complex technical problems.
 
 server:
   port: 9090
