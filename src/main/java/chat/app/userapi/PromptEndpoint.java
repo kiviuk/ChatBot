@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.math.BigInteger;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,6 +36,18 @@ public class PromptEndpoint {
     @Value("${openai.api.temperature}")
     private double temperature;
 
+    @Value("${openai.system-message2}")
+    private String systemMessage;
+
+    @Value("${openai.max-token-length}")
+    private Integer maxTokenLength;
+
+    private static final SecureRandom random = new SecureRandom();
+
+    private static String generateRandomHash() {
+        return new BigInteger(130, random).toString(32);
+    }
+
     /**
      * Endpoint for POST /prompt requests. Accepts a user's prompt via JSON payload and generates
      * a response using the Azure's OpenAI GPT-3 model.
@@ -44,9 +58,9 @@ public class PromptEndpoint {
     @PostMapping(value = "/prompt", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> prompt(@NonNull @RequestBody Request prompt) {
 
-        if (prompt.prompt() == null) {
-            LOGGER.info("Received null user prompt.");
-            return ResponseEntity.ok("User prompt cannot be null");
+        if (prompt.prompt() == null || prompt.prompt().isEmpty()) {
+            LOGGER.info("Received empty user prompt.");
+            return ResponseEntity.ok("User prompt cannot be empty");
         }
 
         // Creating a list of messages including system message and user prompt.
@@ -77,18 +91,10 @@ public class PromptEndpoint {
 
     private List<ChatMessage> createGpt35ChatMessages(Request prompt) {
         List<ChatMessage> chatMessages = new ArrayList<>();
-        chatMessages.add(new ChatMessage(ChatRole.SYSTEM, """
-                You are an effective Senior Software Engineer helping a junior software engineer in analysing and
-                understanding complex technical problems.
-                User gives you some message, and you need to generate a precise response.
-                
-                Instructions:
-                - Be concise
-                - Be pragmatic and go to the point
-                - Be technical
-                - Refrain from self referrals, such "I suggest..."
-                """));
-        chatMessages.add(new ChatMessage(ChatRole.USER, prompt.prompt()));
+        chatMessages.add(new ChatMessage(ChatRole.SYSTEM, systemMessage));
+        String completePrompt = String.format("%s\n%s", generateRandomHash(), prompt.prompt());
+        completePrompt = completePrompt.substring(0, Math.min(maxTokenLength, completePrompt.length()));
+        chatMessages.add(new ChatMessage(ChatRole.USER, completePrompt));
         return chatMessages;
     }
 
